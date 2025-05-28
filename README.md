@@ -1,6 +1,5 @@
 # Echoes of Phonetics: Unveiling Relevant Acoustic Cues for ASR via Feature Attribution
 
-
 This repository provides instructions to reproduce the results from the Interspeech 2025 paper
 [Echoes of Phonetics: Unveiling Relevant Acoustic Cues for ASR via Feature Attribution]().
 The study analyzes feature attribution explanations on the [TIMIT corpus](https://catalog.ldc.upenn.edu/LDC93S1) 
@@ -9,63 +8,15 @@ explainability framework.
 
 ### 📦 Data Preprocessing
 
-The first step involves converting TIMIT audio files from SPH to WAV format. Use the following script for conversion:
-
-```python
-import os
-import numpy as np
-import wave
-
-
-def read_sphere_file(sph_file):
-    with open(sph_file, 'rb') as f:
-        header = f.read(1024)
-
-        # Check if it's a valid SPHERE file and parse header
-        if not header.startswith(b'NIST'):
-            raise ValueError("Not a valid SPHERE file")
-
-        # Parse the file (this will vary based on the actual SPHERE format)
-        data = np.fromfile(f, dtype=np.int16)
-
-        return data
-
-def write_wav_file(data, wav_file):
-    with wave.open(wav_file, 'wb') as wav:
-        wav.setnchannels(1)  # Mono
-        wav.setsampwidth(2)  # 16 bits
-        wav.setframerate(16000)
-        wav.writeframes(data.tobytes())
-
-def convert_sph_to_wav(sph_file, wav_file):
-    try:
-        data = read_sphere_file(sph_file)
-        write_wav_file(data, wav_file)
-        print(f"Converted {sph_file} to {wav_file}")
-    except Exception as e:
-        print(f"Error converting {sph_file}: {e}")
-
-# Set TIMIT root directory
-ROOT_DIR = ''
-
-# Iterate through all .WAV files (which are actually SPH)
-for root, dirs, files in os.walk(ROOT_DIR):
-    for file in files:
-        if file.endswith('.WAV'):
-            sph_path = os.path.join(root, file)
-            wav_path = sph_path.replace('.WAV', '.wav')
-            convert_sph_to_wav(sph_path, wav_path)
-```
-
-Set the TIMIT root directory in the `ROOT_DIR` variable.
-
+The first step involves converting TIMIT audio files from SPH to WAV format. Use the `audio_conversion.py` script 
+for conversion.
 
 Next, follow the preprocessing steps described in the
 [Speechformer README](https://github.com/hlt-mt/FBK-fairseq/blob/master/fbk_works/SPEECHFORMER.md#preprocessing)
 to generate a `${DATA_FILENAME}.tsv` file.
 Place this file in your `${DATA_FOLDER}` directory.
 
-### 🔍 Generating Saliency Maps
+### 🤖 Generating Saliency Maps
 
 To generate saliency maps, begin by running standard inference to obtain the model's transcriptions:
 
@@ -162,7 +113,6 @@ transforms:
   - specaugment
 vocab_filename: ${VOCABULARY}
 vocab_filename_src: ${VOCABULARY}
-
 ```
 
 Now generate the saliency heatmaps, which will be saved in `${SALIENCY_MAPS}`.
@@ -184,10 +134,7 @@ python /path/to/FBK-fairseq/examples/speech_to_text/generate_occlusion_explanati
         --save-file ${SALIENCY_MAPS}
 ```
 
-As recommended by SPES, encoder and decoder saliency maps are generated separately, using two different perturbation 
-configurations (`perturb_config.yaml`).
-
-For filterbank-based (encoder) explanations, use:
+As `perturb_config.yaml` use:
 
 ```yaml
 fbank_occlusion:
@@ -204,91 +151,11 @@ decoder_occlusion:
 scorer: KL
 ```
 
-For decoder (previous token) explanations, use:
+### 🔍 Analyses
 
-```yaml
-fbank_occlusion:
-  category: slic_fbank_dynamic_segments
-  p: 0.0
-  n_masks: 2000
-decoder_occlusion:
-  category: discrete_embed
-  p: 0.4
-  no_position_occlusion: true
-scorer: KL
-```
+All results and plots included in the paper can be reproduced using the `analyses.ipynb` notebook.
 
-Then the two explanations are merged using the following code:
-
-```python
-import argparse
-from typing import Dict
-
-import h5py
-import torch
-from torch import Tensor
-
-
-def read_feature_attribution_maps_from_h5(explanation_path: str) -> Dict[int, Dict[str, Tensor]]:
-    explanations = {}
-    with h5py.File(explanation_path, "r") as f:
-        for key in f.keys():
-            explanations[int(key)] = {}
-            group = f[key]
-            explanations[int(key)]["fbank_heatmap"] = torch.from_numpy(
-                group["fbank_heatmap"][()])
-            explanations[int(key)]["tgt_embed_heatmap"] = torch.from_numpy(
-                group["tgt_embed_heatmap"][()])
-            tgt_txt = group["tgt_text"][()]
-            explanations[int(key)]["tgt_text"] = [x.decode('UTF-8') for x in tgt_txt.tolist()]
-    return explanations
-
-
-def merge_explanations(
-        fbank_explanations: Dict[int, Dict[str, Tensor]],
-        tgt_explanations: Dict[int, Dict[str, Tensor]]) -> Dict[int, Dict[str, Tensor]]:
-    for key in fbank_explanations.keys():
-        try:
-            tgt = tgt_explanations[key]
-        except KeyError:
-            raise KeyError("key {} is missing tgt_embed_heatmap".format(key))
-        assert fbank_explanations[key]["tgt_text"] == tgt["tgt_text"], f"For key {key} there is no correspondance between fbank and tgt.\nThese are the two texts:\n{fbank_explanations[key]['tgt_text']}\n{tgt['tgt_text']}"
-        fbank_explanations[key]["tgt_embed_heatmap"] = tgt["tgt_embed_heatmap"]
-    return fbank_explanations
-
-
-def write_explanations_to_h5(explanations: Dict[int, Dict[str, Tensor]], save_path: str) -> None:
-    with h5py.File(save_path, "w") as f:
-        for sample_id in explanations.keys():
-            group = f.create_group(str(sample_id))
-            for key, value in explanations[sample_id].items():
-                group.create_dataset(
-                    key, data=value.cpu() if type(value) == Tensor else value)
-
-
-def main(fbank_explanation_path: str, tgt_explanation_path: str, save_path: str):
-    fbank_explanation = read_feature_attribution_maps_from_h5(fbank_explanation_path)
-    tgt_explanation = read_feature_attribution_maps_from_h5(tgt_explanation_path)
-    merged = merge_explanations(fbank_explanation, tgt_explanation)
-    write_explanations_to_h5(merged, save_path)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Merge feature attribution maps from two h5 files")
-    parser.add_argument("--fbank-path", type=str, help="Path to fbank explanation h5 file")
-    parser.add_argument("--tgt-path", type=str, help="Path to tgt explanation h5 file")
-    parser.add_argument("--save-path", type=str, help="Path to save merged explanations h5 file")
-    args = parser.parse_args()
-
-    main(args.fbank_path, args.tgt_path, args.save_path)
-```
-
-### Analyses
-
-All results and plots included in the paper can be reproduced using 
-[this Colab notebook](https://github.com/hlt-mt/phonetic-analysis-xai/blob/main/analyses.ipynb).
-
-### Citation
+### 📄 Citation
 
 ```bibtex
 @inproceedings{fucci-et-al-2025-unveiling,
