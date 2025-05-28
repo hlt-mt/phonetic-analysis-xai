@@ -15,9 +15,12 @@ The first step involves converting TIMIT audio files from SPH to WAV format usin
 Use the `generate_tsv.py` script to generate a TSV file that includes information about each WAV file, along with 
 its orthographic and phonetic annotations.
 
-3. **Preprocessing**  
-Run the `generate_fbanks.py` script to preprocess the data. This will produce a `${DATA_FILENAME}.tsv` 
-file containing the processed metadata. `${DATA_FOLDER}` refers to the directory where this TSV file is saved.
+3. **Preprocessing**
+
+Run the `generate_fbanks.py` script to preprocess the data. This will produce a `${DATA_FILENAME}.tsv` file 
+containing the processed metadata. The `${DATA_FOLDER}` variable should point to the directory where the output 
+TSV file will be saved. Make sure this path is correctly set, as it will be used by subsequent scripts to locate 
+the preprocessed data.
 
 4. **Merge Annotations**  
 For the analyses, it is useful to group all orthographic and phonetic annotations (originally stored 
@@ -27,8 +30,10 @@ in one file per sample) into two JSON files. This can be done using the `merge_a
 
 ### 🤖 Generating Saliency Maps
 
-To generate saliency maps, we rely on the 
-[SPES implementation](https://github.com/hlt-mt/FBK-fairseq/blob/master/fbk_works/XAI_FEATURE_ATTRIBUTION.md).
+To generate saliency maps, we use the [FBK-fairseq repository](https://github.com/hlt-mt/FBK-fairseq),
+which must be installed beforehand. For detailed instructions on how to run SPES, refer to the 
+[XAI Feature Attribution README](https://github.com/hlt-mt/FBK-fairseq/blob/master/fbk_works/XAI_FEATURE_ATTRIBUTION.md) 
+in the repository.
 
 We begin by running standard inference to obtain the model's transcriptions:
 
