@@ -45,8 +45,7 @@ def convert_sph_to_wav(sph_file, wav_file):
     except Exception as e:
         print(f"Error converting {sph_file}: {e}")
 
-# Set TIMIT root directory
-ROOT_DIR = ''
+ROOT_DIR = ''  # Set TIMIT root directory
 
 # Iterate through all .WAV files (which are actually SPH)
 for root, dirs, files in os.walk(ROOT_DIR):
