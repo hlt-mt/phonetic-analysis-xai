@@ -94,7 +94,7 @@ python /path/to/FBK-fairseq/examples/speech_to_text/generate_occlusion_explanati
 
 ### 🔍 Analyses
 
-All results and plots included in the paper can be reproduced using the `analyses.ipynb` notebook.
+All results and plots included in the paper can be reproduced running the `analyses.ipynb` notebook.
 
 ### 📄 Citation
 
