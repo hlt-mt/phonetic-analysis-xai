@@ -17,7 +17,7 @@ import pandas as pd
 
 tsv_path = ""  # Path to the tsv file containing data information
 output_file = ""  # Output json file
-annotation = ""  # "words" to merge ortographic annotation, "phones" for phonetic annotation
+annotation = ""  # "words" to merge orthographic annotation, "phones" for phonetic annotation
 
 data = pd.read_csv(tsv_path, sep='\t')
 all_files = data[annotation]
