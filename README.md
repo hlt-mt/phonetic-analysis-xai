@@ -6,19 +6,19 @@ The study analyzes feature attribution explanations on the [TIMIT corpus](https:
 using a Conformer-based state-of-the-art ASR model and the with [SPES](https://arxiv.org/abs/2411.01710) 
 explainability framework.
 
-### 📦 Data Preprocessing
+### 📦 Preparing Data
 
-The first step involves converting TIMIT audio files from SPH to WAV format. Use the `audio_conversion.py` script 
-for conversion.
-
-Next, follow the preprocessing steps described in the
-[Speechformer README](https://github.com/hlt-mt/FBK-fairseq/blob/master/fbk_works/SPEECHFORMER.md#preprocessing)
-to generate a `${DATA_FILENAME}.tsv` file.
-Place this file in your `${DATA_FOLDER}` directory.
+The first step involves converting TIMIT audio files from SPH to WAV format using the `audio_conversion.py` script.
+Next, preprocess the data with the `preprocess_data.py` script. This will generate a `${DATA_FILENAME}.tsv` file 
+containing the processed metadata.
+The `${DATA_FOLDER}` variable refers to the directory where the TSV file is stored.
 
 ### 🤖 Generating Saliency Maps
 
-To generate saliency maps, begin by running standard inference to obtain the model's transcriptions:
+To generate saliency maps, we rely on the 
+[SPES implementation](https://github.com/hlt-mt/FBK-fairseq/blob/master/fbk_works/XAI_FEATURE_ATTRIBUTION.md).
+
+We begin by running standard inference to obtain the model's transcriptions:
 
 ```bash  
 python /path/to/FBK-fairseq/fairseq_cli/generate.py ${DATA_FOLDER} \
