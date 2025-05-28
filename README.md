@@ -285,7 +285,8 @@ if __name__ == "__main__":
 
 ### Analyses
 
-All results and plots included in the paper can be reproduced using [this Colab notebook]().
+All results and plots included in the paper can be reproduced using 
+[this Colab notebook](https://github.com/hlt-mt/phonetic-analysis-xai/blob/main/analyses.ipynb).
 
 ### Citation
 
