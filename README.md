@@ -8,10 +8,24 @@ explainability framework.
 
 ### 📦 Preparing Data
 
+### Preparing TIMIT Data
+
+1. **Audio Conversion**  
 The first step involves converting TIMIT audio files from SPH to WAV format using the `audio_conversion.py` script.
-Next, preprocess the data with the `preprocess_data.py` script. This will generate a `${DATA_FILENAME}.tsv` file 
-containing the processed metadata.
-The `${DATA_FOLDER}` variable refers to the directory where the TSV file is stored.
+
+2. **Generate TSV Metadata**  
+Use the `generate_tsv.py` script to generate a TSV file that includes information about each WAV file, along with 
+its orthographic and phonetic annotations.
+
+3. **Preprocessing**  
+Run the `generate_fbanks.py` script to preprocess the data. This will produce a `${DATA_FILENAME}.tsv` 
+file containing the processed metadata. `${DATA_FOLDER}` refers to the directory where this TSV file is saved.
+
+4. **Merge Annotations**  
+For the analyses, it is useful to group all orthographic and phonetic annotations (originally stored 
+in one file per sample) into two JSON files. This can be done using the `merge_annotations.py` script, which generates:
+- `${JSON_ORTHOGRAPHIC}`: A single JSON file containing all orthographic annotations.
+- `${JSON_PHONETIC}`: A single JSON file containing all phonetic annotations.
 
 ### 🤖 Generating Saliency Maps
 
