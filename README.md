@@ -8,8 +8,6 @@ explainability framework.
 
 ### 📦 Preparing Data
 
-### Preparing TIMIT Data
-
 1. **Audio Conversion**  
 The first step involves converting TIMIT audio files from SPH to WAV format using the `audio_conversion.py` script.
 
@@ -58,34 +56,6 @@ Here, `${MODEL_CHECKPOINT}` refers to the path of the pretrained ASR model. Pret
 the [SBAAM](https://github.com/hlt-mt/FBK-fairseq/blob/master/fbk_works/SBAAM.md#-training). 
 The resulting transcriptions are saved to `${TRANSCRIPTION_OUTPUT}` and then post-processed into
 `${DATA_FILENAME}_explain.tsv`. This processed file is required for generating feature attribution maps.
-The following `config_generate.yaml` should be used:
-
-```yaml
-bpe_tokenizer:
-  bpe: sentencepiece
-  sentencepiece_model: ${SENTENCE_PIECE_MODEL}
-bpe_tokenizer_src:
-  bpe: sentencepiece
-  sentencepiece_model: ${SENTENCE_PIECE_MODEL}
-input_channels: 1
-input_feat_per_channel: 80
-sampling_alpha: 1.0
-specaugment:
-  freq_mask_F: 27
-  freq_mask_N: 1
-  time_mask_N: 1
-  time_mask_T: 100
-  time_mask_p: 1.0
-  time_wrap_W: 0
-transforms:
-  '*':
-  - utterance_cmvn
-  _train:
-  - utterance_cmvn
-  - specaugment
-vocab_filename: ${VOCABULARY}
-vocab_filename_src: ${VOCABULARY}
-```
 
 Next, compute the original token probabilities needed by SPES, and store them in `${ORIG_PROBS}`. 
 
@@ -101,32 +71,6 @@ python /path/to/FBK-fairseq/examples/speech_to_text/get_probs_from_constrained_d
         --underlying-criterion label_smoothed_cross_entropy --label-smoothing 0.1 \
         --path ${MODEL_CHECKPOINT} \
         --save-file ${ORIG_PROBS}
-```
-
-Make sure to use this `config_explain.yaml` file:
-
-```yaml
-bpe_tokenizer_src:
-  bpe: sentencepiece
-  sentencepiece_model: ${SENTENCE_PIECE_MODEL}
-input_channels: 1
-input_feat_per_channel: 80
-sampling_alpha: 1.0
-specaugment:
-  freq_mask_F: 27
-  freq_mask_N: 1
-  time_mask_N: 1
-  time_mask_T: 100
-  time_mask_p: 1.0
-  time_wrap_W: 0
-transforms:
-  '*':
-  - utterance_cmvn
-  _train:
-  - utterance_cmvn
-  - specaugment
-vocab_filename: ${VOCABULARY}
-vocab_filename_src: ${VOCABULARY}
 ```
 
 Now generate the saliency heatmaps, which will be saved in `${SALIENCY_MAPS}`.
@@ -146,23 +90,6 @@ python /path/to/FBK-fairseq/examples/speech_to_text/generate_occlusion_explanati
         --path ${MODEL_CHECKPOINT} \
         --original-probs ${ORIG_PROBS} \
         --save-file ${SALIENCY_MAPS}
-```
-
-As `perturb_config.yaml` use:
-
-```yaml
-fbank_occlusion:
-  category: slic_fbank_dynamic_segments
-  p: 0.5
-  n_segments: [2000, 2500, 3000]
-  threshold_duration: 750
-  slic_sigma: 0
-  n_masks: 20000
-decoder_occlusion:
-  category: discrete_embed
-  p: 0.0
-  no_position_occlusion: true
-scorer: KL
 ```
 
 ### 🔍 Analyses

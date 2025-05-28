@@ -1,0 +1,12 @@
+fbank_occlusion:
+  category: slic_fbank_dynamic_segments
+  p: 0.5
+  n_segments: [2000, 2500, 3000]
+  threshold_duration: 750
+  slic_sigma: 0
+  n_masks: 20000
+decoder_occlusion:
+  category: discrete_embed
+  p: 0.0
+  no_position_occlusion: true
+scorer: KL
